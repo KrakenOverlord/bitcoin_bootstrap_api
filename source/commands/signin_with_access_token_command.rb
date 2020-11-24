@@ -5,8 +5,7 @@ require_relative '../authenticator'
 # Returns a JSON hash that looks like this:
 #
 #     {
-#       'contributor' : <contributor hash>,
-#       'candidates' : [<contributor hash>]
+#       'contributor' : <contributor hash>
 #     }
 #
 #  OR
@@ -26,7 +25,7 @@ module Commands
   class SigninWithAccessTokenCommand
     def execute(args)
       access_token = args['access_token']
-      
+
       # Verify user is authenticated.
       response = authenticator.signin_with_access_token(access_token)
       return response if response['error']
@@ -36,8 +35,7 @@ module Commands
 
       # Return the updated contributor and candidates.
       {
-        'contributor' => response['contributor'],
-        'candidates' => database.get_candidates(true)
+        'contributor' => response['contributor']
       }
     end
 

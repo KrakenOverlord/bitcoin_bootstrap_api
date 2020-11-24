@@ -1,3 +1,18 @@
+require_relative './commands/create_bug_report_command'
+require_relative './commands/create_feature_request_command'
+require_relative './commands/get_candidates_command'
+require_relative './commands/register_command'
+require_relative './commands/signin_with_access_token_command'
+require_relative './commands/signin_with_code_command'
+require_relative './commands/sync_contributors_command'
+require_relative './commands/unregister_command'
+require_relative './commands/update_description_command'
+require_relative './commands/vote_command'
+
+require_relative 'database'
+require_relative 'authenticator'
+
+
 # This handler:
 #   - prints out the incoming arguments
 #   - executes a class with the same name as the lambda
@@ -6,8 +21,8 @@
 # The event parameter is a hash of the API Gateway request:
 # event: {
 #   "version"=>"2.0",
-#   "routeKey"=>"POST /register",
-#   "rawPath"=>"/register",
+#   "routeKey"=>"POST /api",
+#   "rawPath"=>"/api",
 #   "rawQueryString"=>"",
 #   "headers"=>{
 #     "accept"=>"*/*",
@@ -58,31 +73,52 @@ def lambda_handler(event:, context:)
 end
 
 class LambdaFunction
+  INTERNAL_SERVER_ERROR = 100
+
   def lambda_handler(event:)
+    return { status: 200 } if event["requestContext"]["http"]["method"] == "OPTIONS"
+
     @event = event
 
-    require_files
+    params_hash = get_params_hash(event)
 
-    body = get_body(event)
+    command = params_hash["command"]
+    params_hash.delete('command')
 
-    command = body["command"]
-    body.delete('command')
+    qualified_command = "Commands::#{command}Command"
 
-    command_class = "Commands::#{command}Command".constantize
-    result = command_class.new.execute(body)
+    command_class = Object.const_get(qualified_command)
+
+    command_class.new.execute(params_hash)
+  rescue Exception => e
+    puts e.message
+    return { 'error' => true, error_code: INTERNAL_SERVER_ERROR }
+  ensure
+    Database.new.increment_metric(command) unless command.to_s.empty?
   end
 
   private
 
-  def get_body(event)
+  def get_params_hash(event)
     body = event["body"]
     body = Base64.decode64(body) if event["isBase64Encoded"]
+
+
+    # params_array = URI.decode_www_form(body)
+    #
+    # params_hash = {}
+    # params_array.each do |param_array|
+    #   params_hash[param_array.first] = param_array.last
+    # end
+
+    # params_hash
+
     JSON.parse(body)
   end
 
   # Require all source files.
-  def require_files
-    project_root = File.dirname(File.absolute_path(__FILE__))
-    Dir.glob(project_root + '/**/*.rb') {|file| require file }
-  end
+  # def require_files
+  #   project_root = File.dirname(File.absolute_path(__FILE__))
+  #   Dir.glob(project_root + '/**/*.rb') {|file| require file }
+  # end
 end

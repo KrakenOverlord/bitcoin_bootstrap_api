@@ -1,48 +1,17 @@
-# Lambda: Order Received
+**TODO**
+- database global variable
+- follow links in getting contributors from GitHub or use https://developer.github.com/v3/libraries/
+- finish specs
+- use hash in signin command
+- strip out the '#non-github-bitcoin' contributor
 
-## Configure S3, SQS and Lambda Function
+**Sync Contributors**
 
-### Create Dead Letter Queues
+`curl -X POST "http://localhost:3000/sync_contributors?code=[code]&include_anonymous=true"`
 
-When a lambda function returns an error, Lambda leaves it in the queue. After the visibility timeout occurs, Lambda receives the message again. If it still fails after the maximum number of retries, the message is discarded. To send messages to a second queue after a maximum number of receives, configure a dead-letter queue on the source queue.
+# Lambda: bitcoin_bootstrap_api
 
-  **Queue Name**
-
-- `orderReceivedCA-[test, stage, production]-DLQ`
-
-**Settings**
-
-- Use standard queue (not FIFO)
-- Set Message Retention Period to 7 days.
-- Set Access Policy:
-
-```
-{
-  "Version": "2008-10-17",
-  "Id": "__default_policy_ID",
-  "Statement": [
-    {
-      "Sid": "__owner_statement",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": [
-        "SQS:*"
-      ],
-      "Resource": "arn:aws:sqs:us-west-1:087256792386:orderReceivedCA-[test, stage, production]-DLQ"
-    }
-  ]
-}
-```
-
-#### Create an alarm for the DLQ
-
-Create a CloudWatch alarm to notify the send an email to the alarms topic whenever there is a visible message in the queue.
-- Queue metric: `ApproximateNumberOfMessagesVisible`
-- Statistic: `Minimum`
-- Threshold Value: `0`
-- Send notifications to `alarms_fulfillment_[test, stage, production]`
+## Configure Lambda Function
 
 ### Create a Lambda Function
 
@@ -55,15 +24,7 @@ Using the AWS web interface:
 
 Using the AWS web interface:
 
-- Assign the protobuf layer.
-- Add an S3 trigger:
-  - Bucket: `smp-shared-[dev, stage, prod]`
-  - Event Type: `All object create events`
-  - Prefix: `ChannelAdvisorFeeds/Order/TO_SMP/` **Make sure there is a `/` suffix on the prefix or the trigger will enter an infinite loop!**
-  - Suffix: `.json`
 - Increase the timeout to 1 minute.
-- Add a Dead-letter queue service:
-  - Queue: `orderReceivedCA-[test, stage, production]-DLQ`
 - Create environment variables:
 ```
 GEM_PATH=/var/task/vendor/bundle/ruby/2.5.0:/opt/ruby/gems/2.5.0:/opt/ruby/2.5.0

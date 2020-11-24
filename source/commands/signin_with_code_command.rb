@@ -4,8 +4,7 @@ require_relative '../authenticator'
 # Returns a JSON hash that looks like this:
 #
 #     {
-#       'contributor' : <contributor hash>,
-#       'candidates' : [<contributor hash>]
+#       'contributor' : <contributor hash>
 #     }
 #
 #  OR
@@ -36,8 +35,7 @@ module Commands
 
       # Return the updated contributor and candidates.
       {
-        'contributor' => response['contributor'],
-        'candidates' => database.get_candidates(true)
+        'contributor' => response['contributor']
       }
     end
 

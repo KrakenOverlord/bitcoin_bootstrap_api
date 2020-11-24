@@ -1,3 +1,5 @@
+require 'httparty'
+
 require_relative 'database'
 
 class Authenticator

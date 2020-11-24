@@ -1,6 +1,4 @@
 require 'httparty'
-require 'byebug'
-require 'awesome_print'
 
 require_relative '../database'
 

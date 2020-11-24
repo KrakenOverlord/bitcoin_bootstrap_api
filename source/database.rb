@@ -1,3 +1,5 @@
+require 'aws-sdk-dynamodb'
+
 class Database
   # Returns the contributor record hash or nil if not found.
   def get_contributor(username)
