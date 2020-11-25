@@ -1,4 +1,3 @@
-require_relative '../database'
 require_relative '../authenticator'
 
 # Returns a JSON hash that looks like this:
@@ -37,11 +36,11 @@ module Commands
       # Verify business rules.
       return { 'error' => true, 'error_code' => 2 } unless business_rules_passed?(contributor, description)
 
-      # Record registration to database.
-      database.register(contributor, description)
+      # Record registration to $database.
+      $database.register(contributor, description)
 
       # Get the updated contributor.
-      contributor = database.get_contributor(contributor['username'])
+      contributor = $database.get_contributor(contributor['username'])
 
       # Log the registration.
       log(contributor)
@@ -49,7 +48,7 @@ module Commands
       # Return the contributor and candidates.
       {
         'contributor' => contributor,
-        'candidates'  => database.get_candidates(true)
+        'candidates'  => $database.get_candidates(true)
       }
     end
 
@@ -63,7 +62,7 @@ module Commands
     end
 
     def bucket_name
-      return 'bitcoin-bootstrap-production' if ENV['ENVIRONMENT'] == 'PRODUCTION'
+      return 'bitcoin-bootstrap-production' if $environment == 'production'
       'bitcoin-bootstrap-stage'
     end
 
@@ -76,10 +75,6 @@ module Commands
       return if description.to_s.size > MAX_DESCRIPTION_SIZE
 
       true
-    end
-
-    def database
-      @database ||= Database.new
     end
 
     def authenticator

@@ -1,5 +1,4 @@
 **TODO**
-- database global variable
 - follow links in getting contributors from GitHub or use https://developer.github.com/v3/libraries/
 - finish specs
 - use hash in signin command

@@ -12,7 +12,6 @@ require_relative './commands/vote_command'
 require_relative 'database'
 require_relative 'authenticator'
 
-
 # This handler:
 #   - prints out the incoming arguments
 #   - executes a class with the same name as the lambda
@@ -60,12 +59,13 @@ require_relative 'authenticator'
 #   "isBase64Encoded"=>true
 # }
 
+$environment = nil
+$database ||= Database.new
+
 def lambda_handler(event:, context:)
   # The puts show up in the logs. A separate line for each puts.
   puts "event: #{event}"
-
   result = LambdaFunction.new.lambda_handler(event: event)
-
   puts "result: #{result}"
 
   # Synchronouse invocations can use return values.
@@ -76,49 +76,34 @@ class LambdaFunction
   INTERNAL_SERVER_ERROR = 100
 
   def lambda_handler(event:)
-    return { status: 200 } if event["requestContext"]["http"]["method"] == "OPTIONS"
+    return { status: 200 } if options_call?(event)
 
     @event = event
 
-    params_hash = get_params_hash(event)
+    $environment = event["stage"] # Add environment to hash ["development", "stage", "production"]
 
+    params_hash = get_params_hash(event)
     command = params_hash["command"]
     params_hash.delete('command')
 
-    qualified_command = "Commands::#{command}Command"
-
-    command_class = Object.const_get(qualified_command)
-
+    command_class = Object.const_get("Commands::#{command}Command")
     command_class.new.execute(params_hash)
   rescue Exception => e
     puts e.message
     return { 'error' => true, error_code: INTERNAL_SERVER_ERROR }
   ensure
-    Database.new.increment_metric(command) unless command.to_s.empty?
+    $database.increment_metric(command) unless command.to_s.empty?
   end
 
   private
 
+  def options_call?(event)
+    event["requestContext"]["http"]["method"] == "OPTIONS"
+  end
+
   def get_params_hash(event)
     body = event["body"]
     body = Base64.decode64(body) if event["isBase64Encoded"]
-
-
-    # params_array = URI.decode_www_form(body)
-    #
-    # params_hash = {}
-    # params_array.each do |param_array|
-    #   params_hash[param_array.first] = param_array.last
-    # end
-
-    # params_hash
-
     JSON.parse(body)
   end
-
-  # Require all source files.
-  # def require_files
-  #   project_root = File.dirname(File.absolute_path(__FILE__))
-  #   Dir.glob(project_root + '/**/*.rb') {|file| require file }
-  # end
 end

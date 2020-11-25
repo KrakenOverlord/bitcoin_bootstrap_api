@@ -1,5 +1,3 @@
-require_relative '../database'
-
 # Returns a JSON hash that looks like this:
 #
 #     {
@@ -20,15 +18,7 @@ require_relative '../database'
 module Commands
   class GetCandidatesCommand
     def execute(args)
-      candidates = database.get_candidates(false)
-
-      { 'candidates' => candidates }
-    end
-
-    private
-
-    def database
-      @database ||= Database.new
+      { 'candidates' => $database.get_candidates(false) }
     end
   end
 end

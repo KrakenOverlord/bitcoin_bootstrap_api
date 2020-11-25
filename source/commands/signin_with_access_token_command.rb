@@ -1,5 +1,3 @@
-require 'aws-sdk-s3'
-require_relative '../database'
 require_relative '../authenticator'
 
 # Returns a JSON hash that looks like this:
@@ -49,16 +47,12 @@ module Commands
     end
 
     def bucket_name
-      return 'bitcoin-bootstrap-production' if ENV['ENVIRONMENT'] == 'PRODUCTION'
+      return 'bitcoin-bootstrap-production' if $environment == 'production'
       'bitcoin-bootstrap-stage'
     end
 
     def s3
       Aws::S3::Resource.new
-    end
-
-    def database
-      @database ||= Database.new
     end
 
     def authenticator

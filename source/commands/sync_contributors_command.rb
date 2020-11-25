@@ -1,7 +1,5 @@
 require 'httparty'
 
-require_relative '../database'
-
 # POST /sync_contributors
 # curl -X POST "http://localhost:3000/api?code=[code]&include_anonymous=true"
 module Commands
@@ -94,7 +92,7 @@ module Commands
       contributors.values
     end
 
-    # Returns an array of contributor hashes formatted for the database
+    # Returns an array of contributor hashes formatted for the $database
     def format_contributors(contributors)
       contributors.map do |contributor|
         {
@@ -109,12 +107,8 @@ module Commands
 
     def record_contributors(contributors)
       contributors.each do |contributor|
-        database.sync_contributor(contributor)
+        $database.sync_contributor(contributor)
       end
-    end
-
-    def database
-      @database ||= Database.new
     end
   end
 end

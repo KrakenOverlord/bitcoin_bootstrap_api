@@ -1,7 +1,5 @@
 require 'httparty'
 
-require_relative 'database'
-
 class Authenticator
   # Returns a contributor.
   # Return error = 0 cannot authenticate user with Github.
@@ -17,12 +15,12 @@ class Authenticator
 
     # Verify the user is a contributor.
     contributor = nil
-    contributor = database.get_contributor(user['login'].to_s)
-    contributor = database.get_contributor(user['email'].to_s) if contributor.nil? && !user['email'].nil?
+    contributor = $database.get_contributor(user['login'].to_s)
+    contributor = $database.get_contributor(user['email'].to_s) if contributor.nil? && !user['email'].nil?
     return { 'error' => true, 'error_code' => 1 } unless contributor
 
     # Update the contributor with the access_token.
-    contributor = database.update_access_token(contributor['username'], access_token)
+    contributor = $database.update_access_token(contributor['username'], access_token)
 
     {
       'contributor' => contributor
@@ -41,8 +39,8 @@ class Authenticator
 
     # Verify the user is a contributor.
     contributor = nil
-    contributor = database.get_contributor(user['login'].to_s)
-    contributor = database.get_contributor(user['email'].to_s) if contributor.nil? && !user['email'].nil?
+    contributor = $database.get_contributor(user['login'].to_s)
+    contributor = $database.get_contributor(user['email'].to_s) if contributor.nil? && !user['email'].nil?
     return { 'error' => true, 'error_code' => 1 } unless contributor
 
     {
@@ -56,7 +54,7 @@ class Authenticator
   # POST response will look like this:
   #   access_token=e4546153abea3890ac63b63d2d85e17272b852d7&scope=&token_type=bearer
   def get_access_token(code)
-    response = HTTParty.post("https://github.com/login/oauth/access_token?client_id=#{ENV['GH_CLIENT_ID']}&client_secret=#{ENV['GH_CLIENT_SECRET']}&code=#{code}")
+    response = HTTParty.post("https://github.com/login/oauth/access_token?client_id=#{github_client_id}&client_secret=#{github_client_secret}&code=#{code}")
     raise unless response.code.to_s.start_with?('2')
 
     access_token = nil
@@ -80,7 +78,15 @@ class Authenticator
     ).parsed_response
   end
 
-  def database
-    @database ||= Database.new
+  def github_client_id
+    return ENV['GH_CLIENT_ID_DEVELOPMENT']  if $environment == 'development'
+    return ENV['GH_CLIENT_ID_STAGE']        if $environment == 'stage'
+    return ENV['GH_CLIENT_ID_PRODUCTION']   if $environment == 'production'
+  end
+
+  def github_client_secret
+    return ENV['GH_CLIENT_SECRET_DEVELOPMENT']  if $environment == 'development'
+    return ENV['GH_CLIENT_SECRET_STAGE']        if $environment == 'stage'
+    return ENV['GH_CLIENT_SECRET_PRODUCTION']   if $environment == 'production'
   end
 end

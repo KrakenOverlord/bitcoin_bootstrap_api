@@ -1,4 +1,3 @@
-require_relative '../database'
 require_relative '../authenticator'
 
 # Returns a JSON hash that looks like this:
@@ -40,11 +39,11 @@ module Commands
       # Verify business rules.
       return { 'error' => true, 'error_code' => 2 } unless business_rules_passed?(voter_username, old_candidate_username, new_candidate_username)
 
-      # Record votes to database.
-      database.vote(voter_username.to_s, old_candidate_username.to_s, new_candidate_username.to_s)
+      # Record votes to $database.
+      $database.vote(voter_username.to_s, old_candidate_username.to_s, new_candidate_username.to_s)
 
       # Get the updated contributor.
-      contributor = database.get_contributor(contributor['username'])
+      contributor = $database.get_contributor(contributor['username'])
 
       # Log the voting.
       log(contributor)
@@ -52,7 +51,7 @@ module Commands
       # Return the updated contributor and candidates.
       {
         'contributor' => contributor,
-        'candidates'  => database.get_candidates(true)
+        'candidates'  => $database.get_candidates(true)
       }
     end
 
@@ -62,7 +61,7 @@ module Commands
       return if old_candidate_username.empty?
 
       # See if old candidate is still registered.
-      old_candidate = database.get_candidate(old_candidate_username)
+      old_candidate = $database.get_candidate(old_candidate_username)
       return old_candidate_username if old_candidate
     end
 
@@ -70,7 +69,7 @@ module Commands
       return if new_candidate_username.to_s.empty?
 
       # Verify candidate exists.
-      new_candidate = database.get_contributor(new_candidate_username)
+      new_candidate = $database.get_contributor(new_candidate_username)
       return unless new_candidate
 
       # Verify that the new candidate is registered.
@@ -87,16 +86,12 @@ module Commands
     end
 
     def bucket_name
-      return 'bitcoin-bootstrap-production' if ENV['ENVIRONMENT'] == 'PRODUCTION'
+      return 'bitcoin-bootstrap-production' if $environment == 'production'
       'bitcoin-bootstrap-stage'
     end
 
     def s3
       Aws::S3::Resource.new
-    end
-
-    def database
-      @database ||= Database.new
     end
 
     def authenticator

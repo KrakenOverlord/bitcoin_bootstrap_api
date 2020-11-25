@@ -1,9 +1,13 @@
 require 'aws-sdk-dynamodb'
 
 class Database
+  def initialize
+    @database = Aws::DynamoDB::Client.new
+  end
+
   # Returns the contributor record hash or nil if not found.
   def get_contributor(username)
-    contributor = dynamodb.get_item(
+    contributor = @database.get_item(
       table_name: contributors_table_name,
       key: { "username" => username },
       consistent_read: true
@@ -14,7 +18,7 @@ class Database
 
   # Returns the candidate record hash or nil if not found.
   def get_candidate(username)
-    candidate = dynamodb.get_item(
+    candidate = @database.get_item(
       table_name: candidates_table_name,
       key: { "username" => username },
       consistent_read: true
@@ -25,7 +29,7 @@ class Database
   end
 
   def delete_contributor(username)
-    dynamodb.delete_item(
+    @database.delete_item(
       {
         table_name: contributors_table_name,
         key: {
@@ -36,7 +40,7 @@ class Database
   end
 
   def delete_candidate(username)
-    dynamodb.delete_item(
+    @database.delete_item(
       {
         table_name: candidates_table_name,
         key: {
@@ -55,7 +59,7 @@ class Database
     }
 
     loop do
-      result = dynamodb.scan(params)
+      result = @database.scan(params)
 
       # Add the contributor to the contributors array.
       result.items.each do |contributor|
@@ -79,7 +83,7 @@ class Database
     }
 
     loop do
-      result = dynamodb.scan(params)
+      result = @database.scan(params)
 
       # Convert votes to an integer and add the candidate to the candidates array.
       result.items.each do |candidate|
@@ -108,7 +112,7 @@ class Database
       "is_candidate = if_not_exists(is_candidate, :is_candidate)"
     ].join(",")
 
-    dynamodb.update_item(
+    @database.update_item(
       {
         table_name: contributors_table_name,
         key: { 'username' => contributor[:username] },
@@ -130,7 +134,7 @@ class Database
 
   # Creates a new candidate.
   def register(contributor, description)
-    dynamodb.transact_write_items(
+    @database.transact_write_items(
       {
         transact_items: [
           {
@@ -165,7 +169,7 @@ class Database
 
   # Deletes a candidate.
   def unregister(username)
-    dynamodb.transact_write_items(
+    @database.transact_write_items(
       {
         transact_items: [
           {
@@ -193,7 +197,7 @@ class Database
 
   # Updates a candidates description.
   def update_description(username, description)
-    dynamodb.transact_write_items(
+    @database.transact_write_items(
       {
         transact_items: [
           {
@@ -222,7 +226,7 @@ class Database
   end
 
   def increment_metric(command)
-    dynamodb.update_item(
+    @database.update_item(
       table_name: metrics_table_name,
       key: { 'command' => command },
       update_expression: 'ADD numCalls :numCalls',
@@ -232,7 +236,7 @@ class Database
 
   def vote(voter_username, old_candidate_username, new_candidate_username)
     if old_candidate_username.empty?
-      dynamodb.transact_write_items(
+      @database.transact_write_items(
         {
           transact_items: [
             { # Add a vote for the new candidate
@@ -256,7 +260,7 @@ class Database
         }
       )
     else
-      dynamodb.transact_write_items(
+      @database.transact_write_items(
         {
           transact_items: [
             { # Decrement vote for the old candidate
@@ -292,7 +296,7 @@ class Database
 
   # Returns the contributor with username
   def update_access_token(username, access_token)
-    contributor = dynamodb.update_item(
+    contributor = @database.update_item(
       {
         table_name: contributors_table_name,
         key: { 'username' => username },
@@ -307,17 +311,17 @@ class Database
   end
 
   def contributors_table_name
-    return 'contributors-production' if ENV['ENVIRONMENT'] == 'PRODUCTION'
+    return 'contributors-production' if $environment == 'production'
     'contributors-stage'
   end
 
   def candidates_table_name
-    return 'candidates-production' if ENV['ENVIRONMENT'] == 'PRODUCTION'
+    return 'candidates-production' if $environment == 'production'
     'candidates-stage'
   end
 
   def metrics_table_name
-    return 'metrics-production' if ENV['ENVIRONMENT'] == 'PRODUCTION'
+    return 'metrics-production' if $environment == 'production'
     'metrics-stage'
   end
 
@@ -330,9 +334,5 @@ class Database
     end
 
     votes
-  end
-
-  def dynamodb
-    @dynamodb ||= Aws::DynamoDB::Client.new
   end
 end
