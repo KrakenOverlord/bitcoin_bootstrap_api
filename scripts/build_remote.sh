@@ -15,8 +15,8 @@ zip -r lambda_function.zip *.rb commands vendor -x ./ruby/2.7.0/cache/\*
 mv lambda_function.zip ..
 cd ..
 
-# rm -rf ruby
-# rm -rf vendor
-# rm Gemfile.lock
-# rm -rf temp
-# rm -rf .bundle
+rm -rf ruby
+rm -rf vendor
+rm Gemfile.lock
+rm -rf temp
+rm -rf .bundle

@@ -63,12 +63,10 @@ $environment = nil
 $database ||= Database.new
 
 def lambda_handler(event:, context:)
-  # The puts show up in the logs. A separate line for each puts.
   puts "event: #{event}"
   result = LambdaFunction.new.lambda_handler(event: event)
   puts "result: #{result}"
 
-  # Synchronouse invocations can use return values.
   result.to_json
 end
 
@@ -76,15 +74,12 @@ class LambdaFunction
   INTERNAL_SERVER_ERROR = 100
 
   def lambda_handler(event:)
-    return { status: 200 } if options_call?(event)
-
     @event = event
 
-    $environment = event["stage"] # Add environment to hash ["development", "stage", "production"]
+    return { status: 200 } if options_call?
+    return { status: 400 } unless post_call?
 
-    params_hash = get_params_hash(event)
-    command = params_hash["command"]
-    params_hash.delete('command')
+    $environment = event["stage"] # ["development", "stage", "production"]
 
     command_class = Object.const_get("Commands::#{command}Command")
     command_class.new.execute(params_hash)
@@ -97,13 +92,25 @@ class LambdaFunction
 
   private
 
-  def options_call?(event)
-    event["requestContext"]["http"]["method"] == "OPTIONS"
+  def options_call?
+    @event["requestContext"]["http"]["method"] == "OPTIONS"
   end
 
-  def get_params_hash(event)
-    body = event["body"]
-    body = Base64.decode64(body) if event["isBase64Encoded"]
-    JSON.parse(body)
+  def post_call?
+    @event["requestContext"]["http"]["method"] == "POST"
+  end
+
+  def command
+    return @command if instance_variable_defined?(@command)
+    @command = get_params_hash["command"]
+    @command
+  end
+
+  def get_params_hash
+    return @params_hash if instance_variable_defined?(@params_hash)
+    body = @event["body"]
+    body = Base64.decode64(body) if @event["isBase64Encoded"]
+    @params_hash = JSON.parse(body)
+    @params_hash
   end
 end
