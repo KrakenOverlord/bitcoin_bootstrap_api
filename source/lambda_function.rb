@@ -74,43 +74,41 @@ class LambdaFunction
   INTERNAL_SERVER_ERROR = 100
 
   def lambda_handler(event:)
-    @event = event
-
-    return { status: 200 } if options_call?
-    return { status: 400 } unless post_call?
+    return { status: 200 } if options_call?(event)
+    return { status: 400 } unless post_call?(event)
 
     $environment = event["stage"] # ["development", "stage", "production"]
 
-    command_class = Object.const_get("Commands::#{command}Command")
-    command_class.new.execute(params_hash)
+    command_class(event).new.execute(params_hash(event))
   rescue Exception => e
     puts e.message
     return { 'error' => true, error_code: INTERNAL_SERVER_ERROR }
   ensure
-    $database.increment_metric(command) unless command.to_s.empty?
+    $database.increment_metric(command(event)) unless command(event).to_s.empty?
   end
 
   private
 
-  def options_call?
-    @event["requestContext"]["http"]["method"] == "OPTIONS"
+  def options_call?(event)
+    event["requestContext"]["http"]["method"] == "OPTIONS"
   end
 
-  def post_call?
-    @event["requestContext"]["http"]["method"] == "POST"
+  def post_call?(event)
+    event["requestContext"]["http"]["method"] == "POST"
   end
 
-  def command
-    return @command if instance_variable_defined?(@command)
-    @command = get_params_hash["command"]
-    @command
+  def command_class(event)
+    Object.const_get("Commands::#{command(event)}Command")
   end
 
-  def get_params_hash
-    return @params_hash if instance_variable_defined?(@params_hash)
-    body = @event["body"]
-    body = Base64.decode64(body) if @event["isBase64Encoded"]
-    @params_hash = JSON.parse(body)
-    @params_hash
+  def command(event)
+    params_hash(event)["command"]
+  end
+
+  def params_hash(event)
+    body = event["body"]
+    return {} if body.nil?
+    body = Base64.decode64(body) if event["isBase64Encoded"]
+    JSON.parse(body)
   end
 end
