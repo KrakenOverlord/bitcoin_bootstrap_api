@@ -1,13 +1,13 @@
 **TODO**
-- put S3 as global var
-- follow links in getting contributors from GitHub or use https://developer.github.com/v3/libraries/
+- set up cronjob to sync contributors
+- try getting profile by email for anonymous contributors
 - finish specs
 - use hash in signin command
 - strip out the '#non-github-bitcoin' contributor
 
 **Sync Contributors**
 
-`curl -X POST "http://localhost:3000/sync_contributors?code=[code]&include_anonymous=true"`
+`RUBYOPT="-W:no-deprecated" ruby -r "./scripts/sync_contributors.rb" -e "SyncContributors.new.execute('development', true)"`
 
 # Lambda: bitcoin_bootstrap_api
 

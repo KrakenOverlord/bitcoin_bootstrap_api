@@ -6,7 +6,6 @@ require 'bundler/setup'
 require 'dotenv'
 Dotenv.overload
 
-require 'aws-sdk-s3'
 require 'faker'
 require 'byebug'
 require 'awesome_print'

@@ -2,13 +2,12 @@ require 'json'
 require 'byebug'
 require 'faker'
 require 'awesome_print'
-require 'aws-sdk-dynamodb'
 
 # Loads environment variables.
 require 'dotenv'
 Dotenv.overload
 
-require_relative '../lib/database'
+require_relative '../source/database'
 
 class DeleteContributors
   def execute

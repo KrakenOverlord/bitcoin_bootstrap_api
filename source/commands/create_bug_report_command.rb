@@ -1,3 +1,5 @@
+require 'aws-sdk-sns'
+
 # Returns a JSON hash that looks like this:
 #
 #     {

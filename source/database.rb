@@ -99,39 +99,6 @@ class Database
     candidates
   end
 
-  # This will create a contributor if one doesn't exist.
-  def sync_contributor(contributor)
-    values = [
-      "contributor_type = :contributor_type",
-      "avatar_url = :avatar_url",
-      "html_url = :html_url",
-      "contributions = :contributions",
-      "access_token = if_not_exists(access_token, :access_token)",
-      "voted_for = if_not_exists(voted_for, :voted_for)",
-      "description = if_not_exists(description, :description)",
-      "is_candidate = if_not_exists(is_candidate, :is_candidate)"
-    ].join(",")
-
-    @database.update_item(
-      {
-        table_name: contributors_table_name,
-        key: { 'username' => contributor[:username] },
-        update_expression: "set #{values}",
-        expression_attribute_values: {
-          ':contributor_type' => contributor[:contributor_type].to_s,
-          ':avatar_url'       => contributor[:avatar_url].to_s,
-          ':html_url'         => contributor[:html_url].to_s,
-          ':contributions'    => contributor[:contributions].to_i,
-          ':access_token'     => '',
-          ':voted_for'        => '',
-          ':description'      => '',
-          ':is_candidate'     => false
-        },
-        return_values: "ALL_NEW"
-      }
-    )
-  end
-
   # Creates a new candidate.
   def register(contributor, description)
     @database.transact_write_items(

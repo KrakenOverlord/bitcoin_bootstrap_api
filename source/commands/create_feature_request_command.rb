@@ -1,23 +1,25 @@
+require 'aws-sdk-sns'
+
 # Returns a JSON hash that looks like this:
-  #
-  #     {
-  #       'error' => <true, false>,
-  #       'error_code' : <integer>
-  #     }
-  #
-  # Error Codes:
-  #   1 - Could not create the feature request.
-  #   100 - internal server error.
-  #
-  # POST /api?command=CreateFeatureRequest&username=[username]&description=[description]
-  module Commands
+#
+#     {
+#       'error' => <true, false>,
+#       'error_code' : <integer>
+#     }
+#
+# Error Codes:
+#   1 - Could not create the feature request.
+#   100 - internal server error.
+#
+# POST /api?command=CreateFeatureRequest&username=[username]&description=[description]
+module Commands
   class CreateFeatureRequestCommand
     MAX_DESCRIPTION_SIZE = 500
 
     def execute(args)
       username = args['username'] # Can be empty.
       description = args['description']
-      
+
       # Verify business rules.
       error_code = business_rules(description)
       return { 'error' => true, 'error_code' => error_code } if error_code

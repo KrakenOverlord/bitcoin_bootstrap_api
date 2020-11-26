@@ -4,7 +4,6 @@ require_relative './commands/get_candidates_command'
 require_relative './commands/register_command'
 require_relative './commands/signin_with_access_token_command'
 require_relative './commands/signin_with_code_command'
-require_relative './commands/sync_contributors_command'
 require_relative './commands/unregister_command'
 require_relative './commands/update_description_command'
 require_relative './commands/vote_command'
@@ -79,12 +78,13 @@ class LambdaFunction
     return { status: 200 } if options_call?(event)
     return { status: 400 } unless post_call?(event)
 
-    $environment = event["stage"] # ["development", "stage", "production"]
+    $environment = event["requestContext"]["stage"] # ["development", "stage", "production"]
 
     command_class(event).new.execute(params_hash(event))
   rescue Exception => e
-    puts e.message
-    return { 'error' => true, error_code: INTERNAL_SERVER_ERROR }
+    raise e
+    puts "Exception: #{e}: #{e.message}"
+    return { 'error' => true, error_code: e.message } #INTERNAL_SERVER_ERROR }
   ensure
     $database.increment_metric(command(event)) unless command(event).to_s.empty?
   end

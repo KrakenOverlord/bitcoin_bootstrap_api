@@ -1,3 +1,5 @@
+require 'aws-sdk-s3'
+
 class Logs
   def initialize
     @s3 = Aws::S3::Resource.new
