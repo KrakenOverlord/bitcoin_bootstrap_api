@@ -11,6 +11,7 @@ require_relative './commands/vote_command'
 
 require_relative 'database'
 require_relative 'authenticator'
+require_relative 'logs'
 
 # This handler:
 #   - prints out the incoming arguments
@@ -61,6 +62,7 @@ require_relative 'authenticator'
 
 $environment = nil
 $database ||= Database.new
+$logs ||= Logs.new
 
 def lambda_handler(event:, context:)
   puts "event: #{event}"

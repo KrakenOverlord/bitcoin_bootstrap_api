@@ -43,7 +43,7 @@ module Commands
       contributor = $database.get_contributor(contributor['username'])
 
       # Log the registration.
-      log(contributor)
+      $logs.log('Register', contributor)
 
       # Return the contributor and candidates.
       {
@@ -53,22 +53,6 @@ module Commands
     end
 
     private
-
-    def log(contributor)
-      object = s3.bucket(bucket_name).object("logs/register/#{contributor['username']}/#{Time.now.getutc.to_s}")
-      object.put(body: contributor.to_json)
-    rescue StandardError => e
-      puts "Error uploading to S3: #{e.message}"
-    end
-
-    def bucket_name
-      return 'bitcoin-bootstrap-production' if $environment == 'production'
-      'bitcoin-bootstrap-stage'
-    end
-
-    def s3
-      Aws::S3::Resource.new
-    end
 
     def business_rules_passed?(contributor, description)
       return if contributor['is_candidate']

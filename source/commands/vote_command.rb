@@ -46,7 +46,7 @@ module Commands
       contributor = $database.get_contributor(contributor['username'])
 
       # Log the voting.
-      log(contributor)
+      $logs.log('Vote', contributor)
 
       # Return the updated contributor and candidates.
       {
@@ -76,22 +76,6 @@ module Commands
       return unless new_candidate['is_candidate']
 
       true
-    end
-
-    def log(contributor)
-      object = s3.bucket(bucket_name).object("logs/vote/#{contributor['username']}/#{Time.now.getutc.to_s}")
-      object.put(body: contributor.to_json)
-    rescue StandardError => e
-      puts "Error uploading to S3: #{e.message}"
-    end
-
-    def bucket_name
-      return 'bitcoin-bootstrap-production' if $environment == 'production'
-      'bitcoin-bootstrap-stage'
-    end
-
-    def s3
-      Aws::S3::Resource.new
     end
 
     def authenticator

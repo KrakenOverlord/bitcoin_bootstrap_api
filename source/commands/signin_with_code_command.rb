@@ -30,7 +30,7 @@ module Commands
       return response if response['error']
 
       # Log the signin.
-      log(response['contributor'])
+      $logs.log('SigninWithCode', response['contributor'])
 
       # Return the updated contributor and candidates.
       {
@@ -39,22 +39,6 @@ module Commands
     end
 
     private
-
-    def log(contributor)
-      object = s3.bucket(bucket_name).object("logs/signin/#{contributor['username']}/#{Time.now.getutc.to_s}")
-      object.put(body: contributor.to_json)
-    rescue StandardError => e
-      puts "Error uploading to S3: #{e.message}"
-    end
-
-    def bucket_name
-      return 'bitcoin-bootstrap-production' if $environment == 'production'
-      'bitcoin-bootstrap-stage'
-    end
-
-    def s3
-      Aws::S3::Resource.new
-    end
 
     def authenticator
       @authenticator ||= Authenticator.new
