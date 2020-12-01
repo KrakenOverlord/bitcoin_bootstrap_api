@@ -32,7 +32,18 @@ class Test
   end
 end
 
-ap Test.new.execute
+response = HTTParty.get("https://api.github.com/search/users?q=andrew@ajr.systems+in:email&?client_id=f80c23e817fd4f0b7cc2#&client_secret=4bfe7bf8f4be41fda7945e497c022cbea642fc19",
+  headers: {
+    'Accept' => 'application/vnd.github.v3+json'
+  }
+)
+
+byebug
+
+ap response.parsed_response
+
+
+# ap Test.new.execute
 
 # class Test
 #   def execute

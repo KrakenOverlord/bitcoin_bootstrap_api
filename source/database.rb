@@ -28,6 +28,20 @@ class Database
     candidate
   end
 
+  def create_contributor(contributor)
+    @database.put_item(
+      table_name: contributors_table_name,
+      item: contributor
+    )
+  end
+
+  def create_candidate(candidate)
+    @database.put_item(
+      table_name: candidates_table_name,
+      item: candidate
+    )
+  end
+
   def delete_contributor(username)
     @database.delete_item(
       {
@@ -88,12 +102,24 @@ class Database
       # Convert votes to an integer and add the candidate to the candidates array.
       result.items.each do |candidate|
         candidate['votes'] = candidate['votes'].to_i
+        candidate['contributions'] = candidate['contributions'].to_i
         candidates << candidate
       end
 
       break if result.last_evaluated_key.nil?
 
       params[:exclusive_start_key] = result.last_evaluated_key
+    end
+
+    if candidates.empty?
+      candidates << {
+        'username' => 'KrakenOverlord',
+        'avatar_url' => 'https://avatars0.githubusercontent.com/u/967768?v=4',
+        'contributions' => 7,
+        'html_url' => 'https://github.com/KrakenOverlord',
+        'votes' => 23,
+        'description' => "I‘m not a real contributor. I’m just the person that built this website. This is an example of what a listing will look like. It will be automatically deleted after the first real contributor signs up. You’ll want to describe your previous contributions to Bitcoin and what you're currently working on. Maybe explain why it is important. Last but not least, don't forget to tell people how they can fund you. Include a bitcoin address, or a link to a GitHub sponsor page, etc. It's up to you."
+      }
     end
 
     candidates
@@ -192,15 +218,6 @@ class Database
     )
   end
 
-  def increment_metric(command)
-    @database.update_item(
-      table_name: metrics_table_name,
-      key: { 'command' => command },
-      update_expression: 'ADD numCalls :numCalls',
-      expression_attribute_values: { ':numCalls' => 1 }
-    )
-  end
-
   def vote(voter_username, old_candidate_username, new_candidate_username)
     if old_candidate_username.empty?
       @database.transact_write_items(
@@ -259,6 +276,15 @@ class Database
         }
       )
     end
+  end
+
+  def increment_metric(command)
+    @database.update_item(
+      table_name: metrics_table_name,
+      key: { 'command' => command },
+      update_expression: 'ADD numCalls :numCalls',
+      expression_attribute_values: { ':numCalls' => 1 }
+    )
   end
 
   # Returns the contributor with username

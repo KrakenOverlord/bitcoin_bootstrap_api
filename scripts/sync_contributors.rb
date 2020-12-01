@@ -12,15 +12,22 @@ class SyncContributors
     @environment = environment
 
     contributors = get_contributors(include_anonymous)
+
+    normal_contributors = contributors.select { |contributor| contributor['type'] != 'Anonymous' }
+    anonymous_contributors = contributors.select { |contributor| contributor['type'] == 'Anonymous' }
+
     # contributors = JSON.parse(File.read('test/contributors.json'))
     ap "Found #{contributors.count} contributors."
+    ap "Found #{normal_contributors.count} normal contributors."
+    ap "Found #{anonymous_contributors.count} anonymous contributors."
 
-    contributors = flesh_out_contributors(contributors)
-
-    formatted_contributors = format_contributors(contributors)
+    verified_anonymous_contributors = verify_anonymous_contributors(anonymous_contributors)
+    all_verified_contributors = normal_contributors + verified_anonymous_contributors
+    formatted_contributors = format_contributors(all_verified_contributors)
     record_contributors(formatted_contributors)
 
-    File.open("last_sync.txt", "w") { |f| f.write Time.now.to_s }
+    time = Time.now.to_s
+    File.open("last_sync-#{time}.txt", "w") { |f| f.write "Total: #{all_verified_contributors.count}, Verified anons: #{verified_anonymous_contributors.count}" }
 
     formatted_contributors.count
   end
@@ -94,16 +101,16 @@ class SyncContributors
 
       ap "Processed contributors page #{index}."
       index += 1
+      break
     end
 
     contributors.values
   end
 
-  def flesh_out_contributors(contributors)
-    anons = contributors.select { |contributor| contributor['type'] == 'Anonymous' }
-
+  def verify_anonymous_contributors(anons)
     count = 0
     updated = 0
+    verified_anons = []
     anons.each do |anon|
       ap "Searching for #{anon['login']}"
       response = find_user(anon['login'])
@@ -112,7 +119,7 @@ class SyncContributors
       if response['total_count'] && response['total_count'] == 1
         contributor = response['items'].first
         ap "New contributor info: #{contributor}"
-        anon = anon.merge(contributor)
+        verified_anons << contributor
         updated = updated + 1
       elsif response['total_count'] && response['total_count'] > 1
         ap "Too many responses."
@@ -125,7 +132,7 @@ class SyncContributors
       sleep(10)
     end
 
-    contributors
+    verified_anons
   end
 
   def find_user(email)

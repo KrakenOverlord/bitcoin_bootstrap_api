@@ -7,12 +7,16 @@ Dotenv.overload
 
 require_relative '../source/database'
 
-class DeleteContributors
+class CopyContributorsFromProductionToStage
   def execute
-    contributors = database.get_contributors(false)
+    $environment = 'production'
+
+    contributors = Database.new.get_contributors(false)
+
+    $environment = 'development'
 
     contributors.map do |contributor|
-      database.delete_contributor(contributor['username'])
+      database.create_contributor(contributor)
     end
   end
 

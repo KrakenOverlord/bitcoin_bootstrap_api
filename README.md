@@ -1,6 +1,6 @@
 **TODO**
 - set up cronjob to sync contributors
-- try getting profile by email for anonymous contributors
+- auto-link to github sponsor page
 - finish specs
 - use hash in signin command
 - strip out the '#non-github-bitcoin' contributor
