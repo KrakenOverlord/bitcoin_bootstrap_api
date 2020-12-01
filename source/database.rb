@@ -118,7 +118,7 @@ class Database
         'contributions' => 7,
         'html_url' => 'https://github.com/KrakenOverlord',
         'votes' => 23,
-        'description' => "I‘m not a real contributor. I’m just the person that built this website. This is an example of what a listing will look like. It will be automatically deleted after the first real contributor signs up. You’ll want to describe your previous contributions to Bitcoin and what you're currently working on. Maybe explain why it is important. Last but not least, don't forget to tell people how they can fund you. Include a bitcoin address, or a link to a GitHub sponsor page, etc. It's up to you."
+        'description' => "This is just an example of what a listing will look like. It will be automatically deleted after the first real contributor signs up. You’ll want to describe your previous contributions to Bitcoin and what you're currently working on. Maybe explain why it is important. Last but not least, don't forget to tell people how they can fund you. Include a bitcoin address, or a link to a GitHub sponsor page, etc. It's up to you."
       }
     end
 
