@@ -15,9 +15,13 @@ class CopyContributorsFromProductionToStage
 
     $environment = 'development'
 
+    count = 0
     contributors.map do |contributor|
       database.create_contributor(contributor)
+      count = count + 1
     end
+
+    count
   end
 
   def database

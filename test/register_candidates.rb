@@ -8,7 +8,7 @@ Dotenv.overload
 require_relative '../source/database'
 
 class RegisterCandidates
-  def execute(num_candidates = 3)
+  def execute(num_candidates = nil)
     contributors = database.get_contributors(false)
 
     description = "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system," \
@@ -19,8 +19,10 @@ class RegisterCandidates
     contributors.map do |contributor|
       database.register(contributor, description)
       index = index + 1
-      break if index >= num_candidates
+      break if num_candidates && index >= num_candidates
     end
+
+    index
   end
 
   def database

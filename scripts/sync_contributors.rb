@@ -9,27 +9,48 @@ Dotenv.overload
 
 class SyncContributors
   def execute(environment, include_anonymous=true)
+    start_time = Time.now.to_i
     @environment = environment
 
-    contributors = get_contributors(include_anonymous)
+    File.open("last_sync.txt", "a") do |f|
+      f.puts "******************************************************************"
+      f.puts "Start Time: #{Time.now.to_s}"
+    end
 
+    contributors = get_contributors(include_anonymous)
     normal_contributors = contributors.select { |contributor| contributor['type'] != 'Anonymous' }
     anonymous_contributors = contributors.select { |contributor| contributor['type'] == 'Anonymous' }
-
-    # contributors = JSON.parse(File.read('test/contributors.json'))
-    ap "Found #{contributors.count} contributors."
+    ap "Found #{contributors.count} total contributors."
     ap "Found #{normal_contributors.count} normal contributors."
     ap "Found #{anonymous_contributors.count} anonymous contributors."
+    File.open("last_sync.txt", "a") do |f|
+      f.puts "Total Contributors: #{contributors.count}"
+      f.puts "Normal Contributors: #{normal_contributors.count}"
+      f.puts "Anonymous Contributors: #{anonymous_contributors.count}"
+    end
 
     verified_anonymous_contributors = verify_anonymous_contributors(anonymous_contributors)
     all_verified_contributors = normal_contributors + verified_anonymous_contributors
     formatted_contributors = format_contributors(all_verified_contributors)
+
+    # Record contributors to database.
+    File.open("last_sync.txt", "a") do |f|
+      f.puts "Recording Contributors to Database: #{formatted_contributors.count} contributors"
+    end
     record_contributors(formatted_contributors)
 
-    time = Time.now.to_s
-    File.open("last_sync-#{time}.txt", "w") { |f| f.write "Total: #{all_verified_contributors.count}, Verified anons: #{verified_anonymous_contributors.count}" }
+    ap "Verified Anonymous Contributors: #{verified_anonymous_contributors.count}"
+    ap "Run Time: #{"%.2f" % ((Time.now.to_i - start_time) / 60.0)} minutes"
+    File.open("last_sync.txt", "a") do |f|
+      f.puts "Verified Anonymous Contributors: #{verified_anonymous_contributors.count}"
+      f.puts "Run Time: #{"%.2f" % ((Time.now.to_i - start_time) / 60.0)} minutes"
+    end
 
     formatted_contributors.count
+  rescue Exception => e
+    File.open("last_sync.txt", "a") do |f|
+      f.puts "Exception: #{e.message}"
+    end
   end
 
   private
@@ -101,7 +122,6 @@ class SyncContributors
 
       ap "Processed contributors page #{index}."
       index += 1
-      break
     end
 
     contributors.values
@@ -113,23 +133,35 @@ class SyncContributors
     verified_anons = []
     anons.each do |anon|
       ap "Searching for #{anon['login']}"
-      response = find_user(anon['login'])
-      ap response
+      res = find_user(anon['login'])
+      if res
+        response = res.parsed_response
+        ap response
 
-      if response['total_count'] && response['total_count'] == 1
-        contributor = response['items'].first
-        ap "New contributor info: #{contributor}"
-        verified_anons << contributor
-        updated = updated + 1
-      elsif response['total_count'] && response['total_count'] > 1
-        ap "Too many responses."
+        if response['total_count'] && response['total_count'] == 1
+          contributor = response['items'].first
+          ap "New contributor info: #{contributor}"
+          verified_anons << contributor
+          updated = updated + 1
+        elsif response['total_count'] && response['total_count'] > 1
+          ap "Too many responses."
+        end
+      else
+        ap 'Error'
       end
 
       count = count + 1
 
-      ap "Processed #{count} of #{anons.count} anons. #{updated} anon updates."
+      limit = res ? res.headers['x-ratelimit-remaining'].to_i : 1
 
-      sleep(10)
+      ap "Processed #{count} of #{anons.count} anons. #{updated} anon updates. Limit: #{limit}"
+
+      if limit < 3
+        ap 'Throttling'
+        sleep(4)
+      else
+        sleep(2)
+      end
     end
 
     verified_anons
@@ -138,11 +170,12 @@ class SyncContributors
   def find_user(email)
     HTTParty.get("https://api.github.com/search/users?q=#{email}+in:email",
       headers: {
-        'Accept' => 'application/vnd.github.v3+json'
+        'Accept' => 'application/vnd.github.v3+json',
+        'Authorization' => "Basic #{ENV['GH_BASIC_AUTH']}"
       }
-    ).parsed_response
+    )
   rescue
-    return {}
+    nil
   end
 
   # Returns an array of contributor hashes formatted for the database.

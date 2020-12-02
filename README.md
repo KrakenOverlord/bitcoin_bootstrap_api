@@ -1,5 +1,4 @@
 **TODO**
-- set up cronjob to sync contributors
 - auto-link to github sponsor page
 - finish specs
 - use hash in signin command
@@ -7,7 +6,15 @@
 
 **Sync Contributors**
 
+Cron:
+
+`rvm cron setup`
+
+`02 12 * * tue  cd /Users/arandall/workspace/bitcoin_bootstrap_api && ruby ./scripts/sync_production.rb`
+
 `RUBYOPT="-W:no-deprecated" ruby -r "./scripts/sync_contributors.rb" -e "SyncContributors.new.execute('development', true)"`
+
+`RUBYOPT="-W:no-deprecated" ruby -r "./test/copy_contributors_from_production_to_stage.rb" -e "CopyContributorsFromProductionToStage.new.execute"`
 
 # Lambda: bitcoin_bootstrap_api
 

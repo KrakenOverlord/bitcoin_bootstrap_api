@@ -34,9 +34,11 @@ end
 
 response = HTTParty.get("https://api.github.com/search/users?q=andrew@ajr.systems+in:email",
   headers: {
-    'Accept' => 'application/vnd.github.v3+json'
+    'Accept' => 'application/vnd.github.v3+json',
+    'Authorization' => "Basic #{ENV['GH_BASIC_AUTH']}"
   }
 )
+
 
 byebug
 
