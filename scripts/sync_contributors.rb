@@ -30,19 +30,29 @@ class SyncContributors
     end
 
     verified_anonymous_contributors = verify_anonymous_contributors(anonymous_contributors)
-    all_verified_contributors = normal_contributors + verified_anonymous_contributors
+    ap "Verified Anonymous Contributors: #{verified_anonymous_contributors.count}"
+
+    filtered_verified_anonymous_contributors = []
+    # Make sure they aern't aleady in normal contributors array.
+    verified_anonymous_contributors.each do |anon|
+      exist = normal_contributors.find { |nc| nc['login'] == anon['login']}
+      filtered_verified_anonymous_contributors << anon unless exist
+    end
+    all_verified_contributors = normal_contributors + filtered_verified_anonymous_contributors
+
     formatted_contributors = format_contributors(all_verified_contributors)
 
     # Record contributors to database.
     File.open("last_sync.txt", "a") do |f|
+      f.puts "Verified Anonymous Contributors: #{verified_anonymous_contributors.count}"
+      f.puts "Verified (and filtered) Anonymous Contributors: #{filtered_verified_anonymous_contributors.count}"
+      f.puts "Final Total Contributors: #{all_verified_contributors.count}"
       f.puts "Recording Contributors to Database: #{formatted_contributors.count} contributors"
     end
     record_contributors(formatted_contributors)
 
-    ap "Verified Anonymous Contributors: #{verified_anonymous_contributors.count}"
     ap "Run Time: #{"%.2f" % ((Time.now.to_i - start_time) / 60.0)} minutes"
     File.open("last_sync.txt", "a") do |f|
-      f.puts "Verified Anonymous Contributors: #{verified_anonymous_contributors.count}"
       f.puts "Run Time: #{"%.2f" % ((Time.now.to_i - start_time) / 60.0)} minutes"
     end
 
@@ -112,12 +122,11 @@ class SyncContributors
       break if users.empty?
 
       # Build a list of contributors.
-      # There can be duplicate anonymous contributers with the same email but
+      # There can be multiple anonymous contributers with the same email but
       # different names.
       users.each do |user|
-        user['login'] = user['email'] if user['type'] == 'Anonymous'
-
-        contributors[user['login']] = user if contributors[user['login']].nil?
+        identifier = (user['type'] == 'Anonymous' ? user['email'] : user['login'])
+        contributors[identifier] = user if contributors[identifier].nil?
       end
 
       ap "Processed contributors page #{index}."
@@ -132,8 +141,8 @@ class SyncContributors
     updated = 0
     verified_anons = []
     anons.each do |anon|
-      ap "Searching for #{anon['login']}"
-      res = find_user(anon['login'])
+      ap "Searching for #{anon['email']}"
+      res = find_user(anon['email'])
       if res
         response = res.parsed_response
         ap response
