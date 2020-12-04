@@ -14,7 +14,7 @@ require 'aws-sdk-sns'
 # POST /api?command=CreateFeatureRequest&username=[username]&description=[description]
 module Commands
   class CreateFeatureRequestCommand
-    MAX_DESCRIPTION_SIZE = 500
+    MAX_DESCRIPTION_SIZE = 1000
 
     def execute(args)
       username = args['username'] # Can be empty.

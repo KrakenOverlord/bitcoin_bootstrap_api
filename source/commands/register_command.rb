@@ -22,7 +22,7 @@ require_relative '../authenticator'
 # POST /api?command=Register&access_token=[access_token]&description=[description]
 module Commands
   class RegisterCommand
-    MAX_DESCRIPTION_SIZE = 500
+    MAX_DESCRIPTION_SIZE = 750
 
     def execute(args)
       access_token = args['access_token']
