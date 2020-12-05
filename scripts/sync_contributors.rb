@@ -216,7 +216,8 @@ class SyncContributors
       "access_token = if_not_exists(access_token, :access_token)",
       "voted_for = if_not_exists(voted_for, :voted_for)",
       "description = if_not_exists(description, :description)",
-      "is_candidate = if_not_exists(is_candidate, :is_candidate)"
+      "is_candidate = if_not_exists(is_candidate, :is_candidate)",
+      "donation_url = if_not_exists(donation_url, :donation_url)"
     ].join(",")
 
     database.update_item(
@@ -232,7 +233,8 @@ class SyncContributors
           ':access_token'     => '',
           ':voted_for'        => '',
           ':description'      => '',
-          ':is_candidate'     => false
+          ':is_candidate'     => false,
+          ':donation_url'     => ''
         }
       }
     )

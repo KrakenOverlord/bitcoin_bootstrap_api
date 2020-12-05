@@ -6,6 +6,7 @@ require_relative './commands/signin_with_access_token_command'
 require_relative './commands/signin_with_code_command'
 require_relative './commands/unregister_command'
 require_relative './commands/update_description_command'
+require_relative './commands/update_donation_url_command'
 require_relative './commands/vote_command'
 
 require_relative 'database'

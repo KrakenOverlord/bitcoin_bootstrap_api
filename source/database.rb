@@ -115,7 +115,7 @@ class Database
   end
 
   # Creates a new candidate.
-  def register(contributor, description)
+  def register(contributor, description, donation_url)
     @database.transact_write_items(
       {
         transact_items: [
@@ -129,7 +129,8 @@ class Database
                 'contributor_type' => contributor['contributor_type'],
                 'html_url' => contributor['html_url'],
                 'votes' => votes(contributor['username']),
-                'description' => description
+                'description' => description,
+                'donation_url' => donation_url
               }
             }
           },
@@ -137,10 +138,11 @@ class Database
             update: {
               table_name: contributors_table_name,
               key: { 'username' => contributor['username'] },
-              update_expression: 'SET is_candidate = :is_candidate, description = :description',
+              update_expression: 'SET is_candidate = :is_candidate, description = :description, donation_url = :donation_url',
               expression_attribute_values: {
                 ':is_candidate' => true,
-                ':description' => description
+                ':description' => description,
+                ':donation_url' => donation_url
               }
             }
           }
@@ -199,6 +201,36 @@ class Database
               update_expression: 'SET description = :description',
               expression_attribute_values: {
                 ':description' => description
+              }
+            }
+          }
+        ]
+      }
+    )
+  end
+
+  # Updates a candidates donation_url.
+  def update_donation_url(username, donation_url)
+    @database.transact_write_items(
+      {
+        transact_items: [
+          {
+            update: {
+              table_name: candidates_table_name,
+              key: { 'username' => username },
+              update_expression: 'SET donation_url = :donation_url',
+              expression_attribute_values: {
+                ':donation_url' => donation_url
+              }
+            }
+          },
+          {
+            update: {
+              table_name: contributors_table_name,
+              key: { 'username' => username },
+              update_expression: 'SET donation_url = :donation_url',
+              expression_attribute_values: {
+                ':donation_url' => donation_url
               }
             }
           }

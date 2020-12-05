@@ -32,39 +32,9 @@ class Test
   end
 end
 
-response = HTTParty.get("https://api.github.com/search/users?q=andrew@ajr.systems+in:email",
-  headers: {
-    'Accept' => 'application/vnd.github.v3+json',
-    'Authorization' => "Basic #{ENV['GH_BASIC_AUTH']}"
-  }
-)
+response = HTTParty.get("https://github.com/sponsors/jonasschnelli")
 
 
 byebug
 
 ap response.parsed_response
-
-
-# ap Test.new.execute
-
-# class Test
-#   def execute
-#     database = Database.new
-#
-#     index = 0
-#
-#     starting = Time.now
-#     100.times do
-#       contributors = database.get_contributors(false)
-#       ap "#{index}: #{contributors.count}"
-#       index += 1
-#     end
-#     ending = Time.now
-#
-#     elapsed = ending - starting
-#
-#     ap "Elapsed: #{elapsed}"
-#   end
-# end
-#
-# ap Test.new.execute

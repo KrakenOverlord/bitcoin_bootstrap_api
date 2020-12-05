@@ -24,6 +24,7 @@ require_relative '../authenticator'
 module Commands
   class VoteCommand
     def execute(args)
+      sleep 3
       access_token = args['access_token']
       new_candidate_username = args['vote']
 

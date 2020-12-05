@@ -15,9 +15,11 @@ class RegisterCandidates
     " and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because " \
     "it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or."
 
+    donation_url = 'http://example.com'
+    
     index = 0
     contributors.map do |contributor|
-      database.register(contributor, description)
+      database.register(contributor, description, donation_url)
       index = index + 1
       break if num_candidates && index >= num_candidates
     end
