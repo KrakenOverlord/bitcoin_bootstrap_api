@@ -19,7 +19,7 @@ ap 'Deleted all candidates.'
 num_copied = CopyContributorsFromProductionToStage.new.execute
 ap "Copied: #{num_copied}."
 
-num_registered = RegisterCandidates.new.execute
+num_registered = RegisterCandidates.new.execute(5)
 ap "Registered: #{num_registered}"
 
 ap "Done."

@@ -12,9 +12,14 @@ Cron:
 
 `02 12 * * tue  cd /Users/arandall/workspace/bitcoin_bootstrap_api && ruby ./scripts/sync_production.rb`
 
+**UTILS**
 `RUBYOPT="-W:no-deprecated" ruby -r "./scripts/sync_contributors.rb" -e "SyncContributors.new.execute('development', true)"`
 
 `RUBYOPT="-W:no-deprecated" ruby -r "./test/copy_contributors_from_production_to_stage.rb" -e "CopyContributorsFromProductionToStage.new.execute"`
+
+`RUBYOPT="-W:no-deprecated" ruby -r "./test/unregister_candidates.rb" -e "UnregisterCandidates.new.execute"`
+
+`RUBYOPT="-W:no-deprecated" ruby -r "./test/register_candidates.rb" -e "RegisterCandidates.new.execute(5)"`
 
 # Lambda: bitcoin_bootstrap_api
 

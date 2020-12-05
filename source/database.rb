@@ -111,17 +111,6 @@ class Database
       params[:exclusive_start_key] = result.last_evaluated_key
     end
 
-    if candidates.empty?
-      candidates << {
-        'username' => 'KrakenOverlord',
-        'avatar_url' => 'https://avatars0.githubusercontent.com/u/967768?v=4',
-        'contributions' => 7,
-        'html_url' => 'https://github.com/KrakenOverlord',
-        'votes' => 23,
-        'description' => "This is an example of what a listing will look like. It will be automatically deleted after the first contributor signs up. In your listing you’ll want to describe your previous contributions to Bitcoin and what you're currently working on. Explain why it is important. Last but not least, don't forget to tell people how they can fund you. Links to your GitHub profile page are automatically included so you could put more information there. Or include a bitcoin address here, or a link to a GitHub sponsor page, or some other information page e.g., https://mymoreinfopage.com. It's up to you. Finally, once you are receiving enough funding to survive, you should unregister so that other contributors can receive the help they need."
-      }
-    end
-
     candidates
   end
 
