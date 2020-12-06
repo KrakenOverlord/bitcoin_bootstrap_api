@@ -108,7 +108,8 @@ class SyncContributors
         'type'          => 'User',
         'avatar_url'    => 'https://avatars0.githubusercontent.com/u/967768?v=4',
         'html_url'      => 'https://github.com/KrakenOverlord',
-        'contributions' => 0
+        'contributions' => 0,
+        'donation_url'  => 'https://github.com/sponsors/KrakenOverlord'
     }
 
     loop do

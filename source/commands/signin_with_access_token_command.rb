@@ -31,7 +31,7 @@ module Commands
       # Log the signin.
       $logs.log('SigninWithAccessToken', response['contributor'])
 
-      # Return the updated contributor and candidates.
+      # Return the updated contributor.
       {
         'contributor' => response['contributor']
       }
