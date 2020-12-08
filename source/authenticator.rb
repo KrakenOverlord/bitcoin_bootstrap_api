@@ -10,13 +10,12 @@ class Authenticator
     # Verify the user is authenticated with GitHub.
     access_token = get_access_token(code)
     return { 'error' => true, 'error_code' => 0 } unless access_token
+
     user = get_user(access_token)
     return { 'error' => true, 'error_code' => 0 } unless user
 
     # Verify the user is a contributor.
-    contributor = nil
     contributor = $database.get_contributor(user['login'].to_s)
-    contributor = $database.get_contributor(user['email'].to_s) if contributor.nil? && !user['email'].nil?
     return { 'error' => true, 'error_code' => 1 } unless contributor
 
     # Update the contributor with the access_token.
@@ -38,9 +37,7 @@ class Authenticator
     return { 'error' => true, 'error_code' => 0 } unless user
 
     # Verify the user is a contributor.
-    contributor = nil
     contributor = $database.get_contributor(user['login'].to_s)
-    contributor = $database.get_contributor(user['email'].to_s) if contributor.nil? && !user['email'].nil?
     return { 'error' => true, 'error_code' => 1 } unless contributor
 
     {
@@ -50,13 +47,13 @@ class Authenticator
 
   private
 
-  # Returns an access_token from Github or nil if not found.
+  # Returns an access_token from Github or nil if unable to authenticate.
   # POST response will look like this:
   #   access_token=e4546153abea3890ac63b63d2d85e17272b852d7&scope=&token_type=bearer
   def get_access_token(code)
     response = HTTParty.post("https://github.com/login/oauth/access_token?client_id=#{github_client_id}&client_secret=#{github_client_secret}&code=#{code}")
-    raise unless response.code.to_s.start_with?('2')
-
+    return nil unless response.code.to_s.start_with?('2')
+    return nil if response['error']
     access_token = nil
     parts = response.parsed_response.split("&")
     parts.each do |part|
@@ -70,12 +67,15 @@ class Authenticator
   # Returns a user hash from GitHub or nil if not found.
   # Each access_token can make 5000 requests per hour to GitHub.
   def get_user(access_token)
-    HTTParty.get("https://api.github.com/user",
+    response = HTTParty.get("https://api.github.com/user",
       headers: {
         'Content-Type' => 'application/json',
         'Authorization' => "token #{access_token}"
       }
     ).parsed_response
+
+    return unless response["login"]
+    return response
   end
 
   def github_client_id
