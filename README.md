@@ -17,8 +17,6 @@ Cron:
 
 `RUBYOPT="-W:no-deprecated" ruby -r "./test/copy_contributors_from_production_to_stage.rb" -e "CopyContributorsFromProductionToStage.new.execute"`
 
-`RUBYOPT="-W:no-deprecated" ruby -r "./test/register_candidates.rb" -e "RegisterCandidates.new.execute(5)"`
-
 # Lambda: bitcoin_bootstrap_api
 
 ## Configure Lambda Function
